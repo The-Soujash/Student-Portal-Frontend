@@ -73,7 +73,6 @@ export function StudentSidebar({ onLogout }: StudentSidebarProps) {
 
         {/* Navigation */}
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => (
