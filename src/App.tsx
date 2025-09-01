@@ -1,20 +1,22 @@
-import React, { useState } from "react";
-import { Toaster } from "@/components/ui/toaster";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { useState } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 // Components
-import Login from "./components/Login";
-import { StudentSidebar } from "./components/StudentSidebar";
-import Dashboard from "./components/Dashboard";
-import StudentProfile from "./components/StudentProfile";
-import Attendance from "./components/Attendance";
 import AcademicResources from "./components/AcademicResources";
+import Attendance from "./components/Attendance";
+import Dashboard from "./components/Dashboard";
+import { DocumentsSection } from "./components/DocumentSection";
 import FeeReceipts from "./components/FeeReceipts";
+import { LectureSection } from "./components/LectureSection";
+import Login from "./components/Login";
 import Marks from "./components/Marks";
+import StudentProfile from "./components/StudentProfile";
+import { StudentSidebar } from "./components/StudentSidebar";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -74,8 +76,8 @@ const App = () => {
                   <Route path="/resources" element={<AcademicResources />} />
                   <Route path="/receipts" element={<FeeReceipts />} />
                   <Route path="/marks" element={<Marks />} />
-                  <Route path="/lectures" element={<div className="p-6"><h1 className="text-3xl font-bold text-university-blue">Lecture Plan</h1><p className="text-muted-foreground">Coming soon...</p></div>} />
-                  <Route path="/documents" element={<div className="p-6"><h1 className="text-3xl font-bold text-university-blue">Documents</h1><p className="text-muted-foreground">Coming soon...</p></div>} />
+                  <Route path="/lectures" element={<LectureSection />} />
+                  <Route path="/documents" element={<DocumentsSection />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>

@@ -1,16 +1,16 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
-  Calendar,
-  BookOpen,
-  Trophy,
-  Users,
-  Clock,
-  CheckCircle,
   AlertCircle,
+  BookOpen,
+  Calendar,
+  CheckCircle,
+  Clock,
   DollarSign,
+  Trophy
 } from "lucide-react";
+import { NoticeSection } from "./NoticeSection";
 
 interface DashboardProps {
   studentCode: string;
@@ -155,6 +155,7 @@ const Dashboard = ({ studentCode }: DashboardProps) => {
           </CardContent>
         </Card>
       </div>
+      <NoticeSection/>
     </div>
   );
 };
