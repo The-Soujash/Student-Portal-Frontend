@@ -3,12 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import {
   AlertCircle,
-  BookOpen,
-  Calendar,
   CheckCircle,
-  Clock,
+  Calendar,
   DollarSign,
-  Trophy
+  Trophy,
+  UserCheck,
+  Users
 } from "lucide-react";
 import { NoticeSection } from "./NoticeSection";
 
@@ -25,19 +25,21 @@ const Dashboard = ({ studentCode }: DashboardProps) => {
     cgpa: 8.7,
     attendance: 87,
     pendingFees: 15000,
-    upcomingExams: 3,
+    activityPoint: 3,
   };
 
-  const recentActivities = [
-    { title: "Data Structures Assignment", type: "assignment", dueDate: "2024-01-15", status: "pending" },
-    { title: "Software Engineering Quiz", type: "quiz", dueDate: "2024-01-12", status: "completed" },
-    { title: "Database Lab Report", type: "lab", dueDate: "2024-01-18", status: "pending" },
+  // Mock for today's attendance
+  const todaysAttendance = [
+    { subject: "Machine Learning", status: "present" },
+    { subject: "Web Development", status: "absent" },
+    { subject: "Database Systems", status: "present" },
   ];
 
-  const upcomingClasses = [
-    { subject: "Machine Learning", time: "10:00 AM", room: "CS-301" },
-    { subject: "Web Development", time: "2:00 PM", room: "CS-205" },
-    { subject: "Database Systems", time: "4:00 PM", room: "CS-102" },
+  // Mock for total attendance breakdown
+  const totalAttendance = [
+    { subject: "Machine Learning", percentage: 90 },
+    { subject: "Web Development", percentage: 82 },
+    { subject: "Database Systems", percentage: 88 },
   ];
 
   return (
@@ -86,44 +88,34 @@ const Dashboard = ({ studentCode }: DashboardProps) => {
 
         <Card className="shadow-card hover:shadow-elevated transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Upcoming Exams</CardTitle>
-            <BookOpen className="h-4 w-4 text-info" />
+            <CardTitle className="text-sm font-medium">Activity Points</CardTitle>
+            <Users className="h-4 w-4 text-info" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-university-blue">{studentData.upcomingExams}</div>
-            <p className="text-xs text-muted-foreground">This month</p>
+            <div className="text-2xl font-bold text-university-blue">{studentData.activityPoint}</div>
+            <p className="text-xs text-muted-foreground">In this semester</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Main Content Grid */}
+      {/* Attendance Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activities */}
+        {/* Today's Attendance */}
         <Card className="shadow-card">
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Clock className="h-5 w-5 mr-2 text-university-blue" />
-              Recent Activities
+              <UserCheck className="h-5 w-5 mr-2 text-university-blue" />
+              Today's Attendance
             </CardTitle>
-            <CardDescription>Your latest assignments and tasks</CardDescription>
+            <CardDescription>Subjects marked for today</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentActivities.map((activity, index) => (
+              {todaysAttendance.map((item, index) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    {activity.status === "completed" ? (
-                      <CheckCircle className="h-4 w-4 text-success" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-warning" />
-                    )}
-                    <div>
-                      <p className="font-medium">{activity.title}</p>
-                      <p className="text-sm text-muted-foreground">Due: {activity.dueDate}</p>
-                    </div>
-                  </div>
-                  <Badge variant={activity.status === "completed" ? "default" : "secondary"}>
-                    {activity.status}
+                  <p className="font-medium">{item.subject}</p>
+                  <Badge variant={item.status === "present" ? "default" : "secondary"}>
+                    {item.status}
                   </Badge>
                 </div>
               ))}
@@ -131,31 +123,42 @@ const Dashboard = ({ studentCode }: DashboardProps) => {
           </CardContent>
         </Card>
 
-        {/* Today's Schedule */}
+        {/* Total Attendance */}
         <Card className="shadow-card">
           <CardHeader>
             <CardTitle className="flex items-center">
               <Calendar className="h-5 w-5 mr-2 text-university-blue" />
-              Today's Schedule
+              Total Attendance
             </CardTitle>
-            <CardDescription>Your classes for today</CardDescription>
+            <CardDescription>Overall subject-wise attendance</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {upcomingClasses.map((classItem, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                  <div>
-                    <p className="font-medium">{classItem.subject}</p>
-                    <p className="text-sm text-muted-foreground">Room: {classItem.room}</p>
-                  </div>
-                  <Badge variant="outline">{classItem.time}</Badge>
+              {totalAttendance.map((item, index) => (
+                <div key={index} className="p-3 bg-muted/30 rounded-lg">
+                  <p className="font-medium">{item.subject}</p>
+                  <Progress value={item.percentage} className="mt-2" />
+                  <p className="text-xs text-muted-foreground mt-1">{item.percentage}%</p>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
       </div>
-      <NoticeSection/>
+
+      {/* Notices - full width at bottom */}
+      <Card className="shadow-card">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <AlertCircle className="h-5 w-5 mr-2 text-university-blue" />
+            Notices
+          </CardTitle>
+          <CardDescription>Important announcements for you</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <NoticeSection />
+        </CardContent>
+      </Card>
     </div>
   );
 };
