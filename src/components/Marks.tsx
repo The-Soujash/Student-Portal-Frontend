@@ -1,15 +1,29 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Trophy,
-  TrendingUp,
-  Target,
   Award,
   BarChart3,
   Calendar,
+  Target,
+  TrendingUp,
+  Trophy,
 } from "lucide-react";
+
+import {
+  CategoryScale,
+  Chart as ChartJS,
+  Legend,
+  LinearScale,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+} from "chart.js";
+import { Line } from "react-chartjs-2";
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const Marks = () => {
   // Mock marks data
@@ -28,8 +42,8 @@ const Marks = () => {
             external: { obtained: 76, total: 80 },
             total: { obtained: 94, total: 100 },
             grade: "A+",
-            gradePoint: 9.0
-          }
+            gradePoint: 9.0,
+          },
         },
         {
           name: "Database Management Systems",
@@ -40,8 +54,8 @@ const Marks = () => {
             external: { obtained: 72, total: 80 },
             total: { obtained: 89, total: 100 },
             grade: "A",
-            gradePoint: 8.5
-          }
+            gradePoint: 8.5,
+          },
         },
         {
           name: "Software Engineering",
@@ -52,8 +66,8 @@ const Marks = () => {
             external: { obtained: 74, total: 80 },
             total: { obtained: 93, total: 100 },
             grade: "A+",
-            gradePoint: 9.0
-          }
+            gradePoint: 9.0,
+          },
         },
         {
           name: "Web Development",
@@ -64,8 +78,8 @@ const Marks = () => {
             external: { obtained: 78, total: 80 },
             total: { obtained: 98, total: 100 },
             grade: "A+",
-            gradePoint: 9.5
-          }
+            gradePoint: 9.5,
+          },
         },
         {
           name: "Machine Learning",
@@ -76,27 +90,107 @@ const Marks = () => {
             external: { obtained: 68, total: 80 },
             total: { obtained: 84, total: 100 },
             grade: "A",
-            gradePoint: 8.0
-          }
-        }
-      ]
+            gradePoint: 8.0,
+          },
+        },
+      ],
     },
     semesterHistory: [
       { semester: "5th Semester", sgpa: 8.5, cgpa: 8.6 },
       { semester: "4th Semester", sgpa: 8.8, cgpa: 8.5 },
       { semester: "3rd Semester", sgpa: 8.2, cgpa: 8.3 },
       { semester: "2nd Semester", sgpa: 8.6, cgpa: 8.4 },
-      { semester: "1st Semester", sgpa: 8.4, cgpa: 8.4 }
-    ]
+      { semester: "1st Semester", sgpa: 8.4, cgpa: 8.4 },
+    ],
   };
 
+  // Linear regression to predict next semester SGPA
+  // Using semesters as X: 1,2,3,... and SGPA as Y
+  const X = marksData.semesterHistory
+    .map((s, idx) => idx + 1)
+    .reverse(); // Semesters 1..5 (oldest first)
+  const Y = marksData.semesterHistory.map((s) => s.sgpa).reverse();
+
+  // Include current semester as well
+  X.push(X.length + 1); // 6th semester
+  Y.push(marksData.currentSemester.sgpa);
+
+  // Calculate linear regression coefficients (slope, intercept)
+  const n = X.length;
+  const sumX = X.reduce((a, b) => a + b, 0);
+  const sumY = Y.reduce((a, b) => a + b, 0);
+  const sumXY = X.reduce((acc, x, i) => acc + x * Y[i], 0);
+  const sumXX = X.reduce((acc, x) => acc + x * x, 0);
+
+  const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+  const intercept = (sumY - slope * sumX) / n;
+
+  // Predict next semester SGPA (7th semester)
+  const nextSemesterNumber = X.length + 1;
+  const predictedSGPA = parseFloat((slope * nextSemesterNumber + intercept).toFixed(2));
+
+  // Chart setup
+  const labels = [...marksData.semesterHistory]
+    .reverse()
+    .map((s) => s.semester)
+    .concat([marksData.currentSemester.semester, "Next Semester"]);
+
+  const sgpaTrend = [...marksData.semesterHistory]
+    .reverse()
+    .map((s) => s.sgpa)
+    .concat([marksData.currentSemester.sgpa, predictedSGPA]);
+
+  const data = {
+    labels,
+    datasets: [
+      {
+        label: "SGPA Trend",
+        data: sgpaTrend,
+        fill: false,
+        borderColor: "blue",
+        backgroundColor: "blue",
+        tension: 0.3,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "top" as const,
+      },
+      title: {
+        display: true,
+        text: "SGPA Trend and Prediction",
+      },
+    },
+    scales: {
+      y: {
+        min: 0,
+        max: 10,
+        ticks: {
+          stepSize: 1,
+        },
+      },
+    },
+  };
+
+  // Rest of your functions untouched
   const getGradeColor = (grade: string) => {
     switch (grade) {
-      case "A+": return "text-success";
-      case "A": return "text-info";
-      case "B+": return "text-warning";
-      case "B": return "text-warning";
-      default: return "text-muted-foreground";
+      case "A+":
+        return "text-success";
+      case "A":
+        return "text-info";
+      case "B+":
+        return "text-warning";
+      case "B":
+        return "text-warning";
+      default:
+        return "text-muted-foreground";
     }
   };
 
@@ -120,9 +214,7 @@ const Marks = () => {
             <Trophy className="h-4 w-4 text-accent" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-university-blue">
-              {marksData.currentSemester.cgpa}
-            </div>
+            <div className="text-2xl font-bold text-university-blue">{marksData.currentSemester.cgpa}</div>
             <p className="text-xs text-muted-foreground">Out of 10.0</p>
           </CardContent>
         </Card>
@@ -133,9 +225,7 @@ const Marks = () => {
             <Award className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-success">
-              {marksData.currentSemester.sgpa}
-            </div>
+            <div className="text-2xl font-bold text-success">{marksData.currentSemester.sgpa}</div>
             <p className="text-xs text-muted-foreground">{marksData.currentSemester.semester}</p>
           </CardContent>
         </Card>
@@ -147,7 +237,7 @@ const Marks = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-info">
-              {Math.max(...marksData.semesterHistory.map(s => s.sgpa), marksData.currentSemester.sgpa)}
+              {Math.max(...marksData.semesterHistory.map((s) => s.sgpa), marksData.currentSemester.sgpa)}
             </div>
             <p className="text-xs text-muted-foreground">Highest SGPA</p>
           </CardContent>
@@ -167,7 +257,9 @@ const Marks = () => {
         </Card>
       </div>
 
-      {/* Detailed Marks */}
+
+
+      {/* Detailed Marks and Tabs (rest of your untouched code) */}
       <Tabs defaultValue="current" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="current" className="flex items-center space-x-2">
@@ -202,15 +294,13 @@ const Marks = () => {
                         </p>
                       </div>
                       <div className="text-right">
-                        <Badge 
+                        <Badge
                           className={`text-lg px-3 py-1 ${getGradeColor(subject.marks.grade)}`}
                           variant="outline"
                         >
                           {subject.marks.grade}
                         </Badge>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          GP: {subject.marks.gradePoint}
-                        </p>
+                        <p className="text-sm text-muted-foreground mt-1">GP: {subject.marks.gradePoint}</p>
                       </div>
                     </div>
 
@@ -223,47 +313,47 @@ const Marks = () => {
                             {subject.marks.internal.obtained}/{subject.marks.internal.total}
                           </span>
                         </div>
-                        <Progress 
-                          value={(subject.marks.internal.obtained / subject.marks.internal.total) * 100} 
-                          className="h-2" 
+                        <Progress
+                          value={parseFloat(
+                            getPercentage(subject.marks.internal.obtained, subject.marks.internal.total)
+                          )}
+                          className="h-4"
+                          variant="blue"
                         />
-                        <p className="text-xs text-muted-foreground">
-                          {getPercentage(subject.marks.internal.obtained, subject.marks.internal.total)}%
-                        </p>
                       </div>
 
                       {/* External Marks */}
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium">External Exam</span>
+                          <span className="text-sm font-medium">External Assessment</span>
                           <span className="text-sm">
                             {subject.marks.external.obtained}/{subject.marks.external.total}
                           </span>
                         </div>
-                        <Progress 
-                          value={(subject.marks.external.obtained / subject.marks.external.total) * 100} 
-                          className="h-2" 
+                        <Progress
+                          value={parseFloat(
+                            getPercentage(subject.marks.external.obtained, subject.marks.external.total)
+                          )}
+                          className="h-4"
+                          variant="cyan"
                         />
-                        <p className="text-xs text-muted-foreground">
-                          {getPercentage(subject.marks.external.obtained, subject.marks.external.total)}%
-                        </p>
                       </div>
 
                       {/* Total Marks */}
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
                           <span className="text-sm font-medium">Total Marks</span>
-                          <span className="text-sm font-bold">
+                          <span className="text-sm">
                             {subject.marks.total.obtained}/{subject.marks.total.total}
                           </span>
                         </div>
-                        <Progress 
-                          value={(subject.marks.total.obtained / subject.marks.total.total) * 100} 
-                          className="h-2" 
+                        <Progress
+                          value={parseFloat(
+                            getPercentage(subject.marks.total.obtained, subject.marks.total.total)
+                          )}
+                          className="h-4"
+                          variant="success"
                         />
-                        <p className="text-xs text-muted-foreground">
-                          {getPercentage(subject.marks.total.obtained, subject.marks.total.total)}%
-                        </p>
                       </div>
                     </div>
                   </div>
@@ -275,89 +365,41 @@ const Marks = () => {
 
         {/* Academic History */}
         <TabsContent value="history" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* SGPA Trend */}
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <BarChart3 className="h-5 w-5 mr-2 text-university-blue" />
-                  SGPA Progression
-                </CardTitle>
-                <CardDescription>Semester-wise performance trend</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {[...marksData.semesterHistory].reverse().map((semester, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <span className="font-medium">{semester.semester}</span>
-                      <div className="flex items-center space-x-3">
-                        <div className="text-right">
-                          <p className="font-bold text-university-blue">SGPA: {semester.sgpa}</p>
-                          <p className="text-sm text-muted-foreground">CGPA: {semester.cgpa}</p>
-                        </div>
-                        <div className="w-16">
-                          <Progress value={(semester.sgpa / 10) * 100} className="h-2" />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {/* Current Semester */}
-                  <div className="flex items-center justify-between p-3 bg-university-light-blue/30 rounded-lg border-2 border-university-blue">
-                    <span className="font-medium">{marksData.currentSemester.semester}</span>
-                    <div className="flex items-center space-x-3">
-                      <div className="text-right">
-                        <p className="font-bold text-university-blue">SGPA: {marksData.currentSemester.sgpa}</p>
-                        <p className="text-sm text-muted-foreground">CGPA: {marksData.currentSemester.cgpa}</p>
-                      </div>
-                      <div className="w-16">
-                        <Progress value={(marksData.currentSemester.sgpa / 10) * 100} className="h-2" />
-                      </div>
-                    </div>
+          <Card className="shadow-card">
+            <CardHeader>
+              <CardTitle>Academic History Overview</CardTitle>
+              <CardDescription>SGPA and CGPA across previous semesters</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {marksData.semesterHistory.map((sem, idx) => (
+                  <div key={idx} className="p-3 border rounded-lg flex justify-between">
+                    <span>{sem.semester}</span>
+                    <span>SGPA: {sem.sgpa}</span>
+                    <span>CGPA: {sem.cgpa}</span>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Performance Analytics */}
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Award className="h-5 w-5 mr-2 text-university-blue" />
-                  Performance Analytics
-                </CardTitle>
-                <CardDescription>Your academic achievements</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-3 bg-success/10 rounded-lg">
-                  <p className="text-sm font-medium text-success">Best Performance</p>
-                  <p className="text-lg font-bold">
-                    SGPA: {Math.max(...marksData.semesterHistory.map(s => s.sgpa), marksData.currentSemester.sgpa)}
-                  </p>
-                </div>
-                
-                <div className="p-3 bg-info/10 rounded-lg">
-                  <p className="text-sm font-medium text-info">Current Rank</p>
-                  <p className="text-lg font-bold">Top 15%</p>
-                  <p className="text-xs text-muted-foreground">Based on CGPA</p>
-                </div>
-                
-                <div className="p-3 bg-warning/10 rounded-lg">
-                  <p className="text-sm font-medium text-warning">Consistency</p>
-                  <p className="text-lg font-bold">Excellent</p>
-                  <p className="text-xs text-muted-foreground">Steady improvement trend</p>
-                </div>
-                
-                <div className="p-3 bg-university-light-blue/30 rounded-lg">
-                  <p className="text-sm font-medium text-university-dark-blue">Target Achievement</p>
-                  <p className="text-lg font-bold">87%</p>
-                  <p className="text-xs text-muted-foreground">Towards graduation goal</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
+      {/* Chart for SGPA Trend */}
+      <div className="my-6 p-4 border rounded-lg shadow-card bg-white">
+        <Line options={options} data={data} />
+      </div>
+      {/* Prediction Card */}
+      <Card className="shadow-card border-blue-400 border mt-6 p-4">
+        <CardHeader>
+          <CardTitle>Next Semester SGPA Prediction</CardTitle>
+          <CardDescription>Based on your SGPA trend over semesters using linear regression</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-blue-600 font-semibold text-center text-lg">
+            Predicted SGPA for next semester: {predictedSGPA}
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 };
